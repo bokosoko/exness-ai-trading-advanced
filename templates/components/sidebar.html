@@ -1,1 +1,128 @@
+<!-- Sidebar -->
+<aside class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col">
+    <!-- Logo -->
+    <div class="p-6 border-b border-gray-700">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-gradient-to-r from-primary-500 to-cyan-400 rounded-lg flex items-center justify-center">
+                <i class="fas fa-robot text-white text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-primary-400 to-cyan-300 bg-clip-text text-transparent">
+                    Exness AI
+                </h1>
+                <p class="text-xs text-gray-400">Trading System</p>
+            </div>
+        </div>
+    </div>
 
+    <!-- Navigation -->
+    <nav class="flex-1 p-4 space-y-2">
+        <a href="{{ url_for('dashboard') }}" 
+           class="nav-item {% if request.endpoint == 'dashboard' %}nav-item-active{% endif %}">
+            <i class="fas fa-chart-line mr-3"></i>
+            <span>ড্যাশবোর্ড</span>
+        </a>
+
+        <a href="{{ url_for('trading_preview') }}" 
+           class="nav-item {% if request.endpoint == 'trading_preview' %}nav-item-active{% endif %}">
+            <i class="fas fa-eye mr-3"></i>
+            <span>লাইভ প্রিভিউ</span>
+            <span class="live-indicator"></span>
+        </a>
+
+        <a href="{{ url_for('analytics') }}" 
+           class="nav-item {% if request.endpoint == 'analytics' %}nav-item-active{% endif %}">
+            <i class="fas fa-chart-bar mr-3"></i>
+            <span>এনালাইটিক্স</span>
+        </a>
+
+        <a href="{{ url_for('ai_chat_interface') }}" 
+           class="nav-item {% if request.endpoint == 'ai_chat_interface' %}nav-item-active{% endif %}">
+            <i class="fas fa-comments mr-3"></i>
+            <span>AI অ্যাসিস্ট্যান্ট</span>
+        </a>
+
+        <!-- Trading Controls -->
+        <div class="pt-4 mt-4 border-t border-gray-700">
+            <h3 class="text-xs uppercase text-gray-500 font-semibold mb-3 px-3">
+                ট্রেডিং কন্ট্রোল
+            </h3>
+            
+            <div class="space-y-2">
+                <button id="quickStartTrading" class="nav-item bg-success-500 hover:bg-success-600 text-white">
+                    <i class="fas fa-play mr-3"></i>
+                    <span>দ্রুত শুরু</span>
+                </button>
+
+                <button id="quickStopTrading" class="nav-item bg-danger-500 hover:bg-danger-600 text-white">
+                    <i class="fas fa-stop mr-3"></i>
+                    <span>বন্ধ করুন</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- User Section -->
+    <div class="p-4 border-t border-gray-700">
+        <div class="flex items-center space-x-3 mb-3">
+            <div class="w-10 h-10 bg-primary-500 rounded-full flex items-center justify-center">
+                <i class="fas fa-user text-white"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium truncate">
+                    {% if current_user.is_authenticated %}
+                        {{ current_user.exness_id }}
+                    {% else %}
+                        Guest
+                    {% endif %}
+                </p>
+                <p class="text-xs text-gray-400 truncate">
+                    {% if current_user.is_authenticated %}
+                        AI Trader
+                    {% else %}
+                        Not logged in
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="space-y-2">
+            <a href="{{ url_for('logout') }}" class="nav-item text-danger-400 hover:bg-danger-500 hover:text-white">
+                <i class="fas fa-sign-out-alt mr-3"></i>
+                <span>লগআউট</span>
+            </a>
+        </div>
+    </div>
+</aside>
+
+<style>
+.nav-item {
+    @apply flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200;
+    @apply text-gray-300 hover:text-white hover:bg-gray-700;
+}
+
+.nav-item-active {
+    @apply bg-primary-500 text-white;
+}
+
+.live-indicator {
+    @apply w-2 h-2 bg-success-500 rounded-full ml-auto;
+    animation: pulse 2s infinite;
+}
+
+.alert {
+    @apply p-4 rounded-lg border-l-4;
+}
+
+.alert-success {
+    @apply border-success-500 bg-success-50 text-success-700;
+}
+
+.alert-error {
+    @apply border-danger-500 bg-danger-50 text-danger-700;
+}
+
+.alert-info {
+    @apply border-primary-500 bg-primary-50 text-primary-700;
+}
+  </style>
