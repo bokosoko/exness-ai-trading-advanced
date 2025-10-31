@@ -1,1 +1,289 @@
+{% extends "base.html" %}
 
+{% block title %}ড্যাশবোর্ড - Exness AI Trading{% endblock %}
+
+{% block page_title %}AI ট্রেডিং ড্যাশবোর্ড{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- Balance Card -->
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">বর্তমান ব্যালেন্স</p>
+                    <p class="text-2xl font-bold text-white mt-1">$<span id="currentBalance">0.00</span></p>
+                </div>
+                <div class="w-12 h-12 bg-primary-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-wallet text-white text-lg"></i>
+                </div>
+            </div>
+            <div class="mt-4 flex items-center text-sm">
+                <span id="balanceChange" class="text-gray-400">লোড হচ্ছে...</span>
+            </div>
+        </div>
+
+        <!-- Target Progress -->
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">টার্গেট প্রোগ্রেস</p>
+                    <p class="text-2xl font-bold text-white mt-1"><span id="progressPercent">0</span>%</p>
+                </div>
+                <div class="w-12 h-12 bg-success-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-bullseye text-white text-lg"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <div class="w-full bg-gray-700 rounded-full h-2">
+                    <div id="targetProgressBar" class="bg-gradient-to-r from-green-500 to-cyan-400 h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Trades -->
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">এক্টিভ ট্রেড</p>
+                    <p class="text-2xl font-bold text-white mt-1"><span id="activeTrades">0</span></p>
+                </div>
+                <div class="w-12 h-12 bg-warning-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exchange-alt text-white text-lg"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="text-sm text-gray-400">সর্বোচ্চ 3 ট্রেড</p>
+            </div>
+        </div>
+
+        <!-- Success Rate -->
+        <div class="bg-gradient-to-br from-gray-800 to-gray-900 p-6 rounded-xl border border-gray-700 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">সাফল্যের হার</p>
+                    <p class="text-2xl font-bold text-white mt-1"><span id="successRate">0</span>%</p>
+                </div>
+                <div class="w-12 h-12 bg-cyan-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-trophy text-white text-lg"></i>
+                </div>
+            </div>
+            <div class="mt-4">
+                <p class="text-sm text-gray-400" id="profitLossText">লোড হচ্ছে...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Trading Control Panel -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+                <div class="p-6 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-robot mr-3 text-primary-400"></i>
+                        AI ট্রেডিং কন্ট্রোল
+                    </h3>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Trading Settings -->
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    প্রারম্ভিক Amount ($)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="initialAmount" 
+                                    value="5"
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    টার্গেট Amount ($)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="targetAmount" 
+                                    value="7"
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
+                                >
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">
+                                    ট্রেডিং স্ট্র্যাটেজি
+                                </label>
+                                <select 
+                                    id="tradingStrategy"
+                                    class="w-full bg-gray-700 border border-gray-600 text-white rounded-lg px-4 py-3 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition duration-200"
+                                >
+                                    <option value="conservative">কনজারভেটিভ (কম রিস্ক)</option>
+                                    <option value="moderate" selected>মডারেট (ব্যালেন্সড)</option>
+                                    <option value="aggressive">অ্যাগ্রেসিভ (হাই রিটার্ন)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Control Buttons -->
+                        <div class="space-y-4 flex flex-col justify-center">
+                            <button 
+                                id="startTradingBtn"
+                                class="w-full bg-gradient-to-r from-green-500 to-cyan-500 text-white py-4 px-6 rounded-lg font-semibold hover:from-green-600 hover:to-cyan-600 transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
+                            >
+                                <i class="fas fa-play mr-3"></i>
+                                ট্রেডিং শুরু করুন
+                            </button>
+                            
+                            <button 
+                                id="stopTradingBtn"
+                                class="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 px-6 rounded-lg font-semibold hover:from-red-600 hover:to-pink-600 transform hover:scale-105 transition-all duration-200 flex items-center justify-center"
+                            >
+                                <i class="fas fa-stop mr-3"></i>
+                                ট্রেডিং বন্ধ করুন
+                            </button>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <button 
+                                    id="getSuggestionsBtn"
+                                    class="bg-purple-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-600 transition duration-200 flex items-center justify-center"
+                                >
+                                    <i class="fas fa-lightbulb mr-2"></i>
+                                    সুজেশন
+                                </button>
+                                
+                                <button 
+                                    id="aiAnalysisBtn"
+                                    class="bg-cyan-500 text-white py-3 px-4 rounded-lg font-medium hover:bg-cyan-600 transition duration-200 flex items-center justify-center"
+                                >
+                                    <i class="fas fa-chart-line mr-2"></i>
+                                    এনালাইসিস
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Overview -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+                <div class="p-6 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-chart-line mr-3 text-cyan-400"></i>
+                        মার্কেট ওভারভিউ
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="marketOverview" class="space-y-3">
+                        <!-- Market data will be loaded here -->
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-sync-alt fa-spin text-2xl mb-3"></i>
+                            <p>মার্কেট ডাটা লোড হচ্ছে...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-6">
+            <!-- AI Suggestions -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+                <div class="p-6 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white flex items-center justify-between">
+                        <span>
+                            <i class="fas fa-star mr-3 text-yellow-400"></i>
+                            AI সুজেশন
+                        </span>
+                        <button id="refreshSuggestions" class="text-gray-400 hover:text-white">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="aiSuggestions" class="space-y-4">
+                        <!-- Suggestions will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <i class="fas fa-robot text-2xl mb-3"></i>
+                            <p class="text-sm">AI সুজেশন লোড হচ্ছে...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+                <div class="p-6 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-history mr-3 text-primary-400"></i>
+                        সাম্প্রতিক এক্টিভিটি
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div id="recentActivity" class="space-y-3">
+                        <!-- Activity will be loaded here -->
+                        <div class="text-center py-4 text-gray-500">
+                            <p class="text-sm">কোনো এক্টিভিটি নেই</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+                <div class="p-6 border-b border-gray-700">
+                    <h3 class="text-lg font-semibold text-white flex items-center">
+                        <i class="fas fa-server mr-3 text-green-400"></i>
+                        সিস্টেম স্ট্যাটাস
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">AI ইঞ্জিন</span>
+                            <span id="aiEngineStatus" class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">বন্ধ</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">এক্সনেস কানেকশন</span>
+                            <span id="exnessConnectionStatus" class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">ডিসকানেক্টেড</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">মার্কেট ডাটা</span>
+                            <span id="marketDataStatus" class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">বন্ধ</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-300">API রেসপন্স</span>
+                            <span id="apiResponseStatus" class="px-2 py-1 bg-red-500 text-white text-xs rounded-full">ধীর</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trading Modal -->
+<div id="tradingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 border border-gray-700">
+        <h3 class="text-xl font-bold text-white mb-4" id="modalTitle">ট্রেডিং কনফার্মেশন</h3>
+        <p class="text-gray-300 mb-6" id="modalMessage">আপনি কি ট্রেডিং শুরু করতে চান?</p>
+        
+        <div class="flex space-x-3">
+            <button id="modalConfirm" class="flex-1 bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-200">
+                হ্যাঁ
+            </button>
+            <button id="modalCancel" class="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-200">
+                বাতিল
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}
