@@ -1,1 +1,142 @@
+<!-- Header -->
+<header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+    <div class="flex items-center justify-between">
+        <!-- Left Section -->
+        <div class="flex items-center space-x-4">
+            <button id="sidebarToggle" class="lg:hidden text-gray-400 hover:text-white">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+            
+            <h2 class="text-xl font-semibold">
+                {% block page_title %}ড্যাশবোর্ড{% endblock %}
+            </h2>
+        </div>
 
+        <!-- Center Section - Trading Status -->
+        <div class="flex items-center space-x-6">
+            <!-- AI Status -->
+            <div class="flex items-center space-x-2">
+                <div id="aiStatus" class="w-3 h-3 bg-danger-500 rounded-full animate-pulse"></div>
+                <span class="text-sm text-gray-300">AI স্ট্যাটাস</span>
+            </div>
+
+            <!-- Trading Status -->
+            <div id="tradingStatus" class="flex items-center space-x-2 bg-gray-700 px-3 py-1 rounded-full">
+                <div class="w-2 h-2 bg-danger-500 rounded-full"></div>
+                <span class="text-sm">বন্ধ</span>
+            </div>
+
+            <!-- Connection Status -->
+            <div class="flex items-center space-x-2">
+                <div id="connectionStatus" class="w-3 h-3 bg-danger-500 rounded-full"></div>
+                <span class="text-sm text-gray-300">এক্সনেস</span>
+            </div>
+        </div>
+
+        <!-- Right Section -->
+        <div class="flex items-center space-x-4">
+            <!-- Notifications -->
+            <div class="relative">
+                <button id="notificationsBtn" class="relative p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-bell text-lg"></i>
+                    <span id="notificationBadge" class="absolute -top-1 -right-1 w-4 h-4 bg-danger-500 text-xs rounded-full flex items-center justify-center hidden">3</span>
+                </button>
+                
+                <!-- Notifications Dropdown -->
+                <div id="notificationsDropdown" class="absolute right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50 hidden">
+                    <div class="p-4 border-b border-gray-700">
+                        <h3 class="font-semibold">নোটিফিকেশন</h3>
+                    </div>
+                    <div class="max-h-64 overflow-y-auto">
+                        <div class="p-3 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
+                            <p class="text-sm">নতুন ট্রেড সিগন্যাল: EUR/USD</p>
+                            <p class="text-xs text-gray-400 mt-1">২ মিনিট আগে</p>
+                        </div>
+                        <div class="p-3 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
+                            <p class="text-sm">ট্রেড ক্লোজ: GBP/USD +$24.50</p>
+                            <p class="text-xs text-gray-400 mt-1">৫ মিনিট আগে</p>
+                        </div>
+                        <div class="p-3 hover:bg-gray-700 cursor-pointer">
+                            <p class="text-sm">AI সিস্টেম আপডেট করা হয়েছে</p>
+                            <p class="text-xs text-gray-400 mt-1">১০ মিনিট আগে</p>
+                        </div>
+                    </div>
+                    <div class="p-2 border-t border-gray-700">
+                        <button class="w-full text-center text-sm text-primary-400 hover:text-primary-300 py-2">
+                            সব নোটিফিকেশন দেখুন
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="flex items-center space-x-2">
+                <button id="quickSettings" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-cog text-lg"></i>
+                </button>
+                
+                <button id="fullscreenToggle" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg">
+                    <i class="fas fa-expand text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="globalProgress" class="mt-3 hidden">
+        <div class="flex justify-between text-sm mb-1">
+            <span>টার্গেট প্রোগ্রেস</span>
+            <span id="progressPercentage">0%</span>
+        </div>
+        <div class="w-full bg-gray-700 rounded-full h-2">
+            <div id="progressBar" class="bg-gradient-to-r from-primary-500 to-cyan-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+        </div>
+    </div>
+</header>
+
+<script>
+// Header functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Notifications dropdown
+    const notificationsBtn = document.getElementById('notificationsBtn');
+    const notificationsDropdown = document.getElementById('notificationsDropdown');
+    
+    if (notificationsBtn && notificationsDropdown) {
+        notificationsBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationsDropdown.classList.toggle('hidden');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function() {
+            notificationsDropdown.classList.add('hidden');
+        });
+    }
+    
+    // Sidebar toggle for mobile
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.querySelector('aside');
+    
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('absolute');
+            sidebar.classList.toggle('z-40');
+        });
+    }
+    
+    // Fullscreen toggle
+    const fullscreenToggle = document.getElementById('fullscreenToggle');
+    if (fullscreenToggle) {
+        fullscreenToggle.addEventListener('click', function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+    }
+});
+                  </script>
