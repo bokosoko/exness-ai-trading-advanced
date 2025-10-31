@@ -1,1 +1,725 @@
+{% extends "base.html" %}
 
+{% block title %}এনালাইটিক্স - Exness AI Trading{% endblock %}
+
+{% block page_title %}ট্রেডিং এনালাইটিক্স{% endblock %}
+
+{% block extra_css %}
+<style>
+.analytics-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.metric-large {
+    grid-column: span 2;
+}
+
+.chart-container {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.5rem;
+    position: relative;
+}
+
+.performance-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1.5rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: #1e293b;
+    border-radius: 8px;
+    border: 1px solid #334155;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+.trades-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.trades-table th,
+.trades-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #334155;
+}
+
+.trades-table th {
+    background: #1e293b;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+.trades-table tr:hover {
+    background: #1e293b;
+}
+
+.profit-positive {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.profit-negative {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.win-rate-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.win-rate-high {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.win-rate-medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.win-rate-low {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.distribution-chart {
+    height: 300px;
+    position: relative;
+}
+
+.time-filter {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.time-filter-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    background: #1e293b;
+    color: #cbd5e1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.time-filter-btn.active {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+    color: white;
+}
+
+.export-btn {
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);
+}
+
+.analytics-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .metric-large {
+        grid-column: span 1;
+    }
+    
+    .analytics-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Analytics Header -->
+    <div class="analytics-header">
+        <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                <i class="fas fa-chart-bar text-cyan-400"></i>
+                ট্রেডিং এনালাইটিক্স
+            </h2>
+            <p class="text-gray-400 mt-1">বিস্তারিত পারফরম্যান্স মেট্রিক্স এবং ট্রেডিং স্ট্যাটিস্টিক্স</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- Time Filter -->
+            <div class="time-filter">
+                <button class="time-filter-btn active" data-period="7d">৭ দিন</button>
+                <button class="time-filter-btn" data-period="30d">৩০ দিন</button>
+                <button class="time-filter-btn" data-period="90d">৯০ দিন</button>
+                <button class="time-filter-btn" data-period="1y">১ বছর</button>
+            </div>
+            <button class="export-btn" id="exportAnalytics">
+                <i class="fas fa-download"></i>
+                এক্সপোর্ট রিপোর্ট
+            </button>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="analytics-grid">
+        <!-- Total Profit -->
+        <div class="performance-card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">মোট প্রফিট</h3>
+                <i class="fas fa-wallet text-2xl text-green-400"></i>
+            </div>
+            <div class="stat-value text-green-400" id="totalProfit">${{ "%.2f"|format(total_profit) }}</div>
+            <div class="text-sm text-gray-400 mt-2">সব ট্রেড থেকে নেট আয়</div>
+        </div>
+
+        <!-- Success Rate -->
+        <div class="performance-card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">সাফল্যের হার</h3>
+                <i class="fas fa-trophy text-2xl text-yellow-400"></i>
+            </div>
+            <div class="stat-value text-yellow-400" id="successRate">{{ "%.1f"|format(success_rate) }}%</div>
+            <div class="text-sm text-gray-400 mt-2">সফল ট্রেডের শতাংশ</div>
+        </div>
+
+        <!-- Total Trades -->
+        <div class="performance-card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">মোট ট্রেড</h3>
+                <i class="fas fa-exchange-alt text-2xl text-cyan-400"></i>
+            </div>
+            <div class="stat-value text-cyan-400" id="totalTrades">{{ total_trades }}</div>
+            <div class="text-sm text-gray-400 mt-2">মোট এক্সিকিউটেড ট্রেড</div>
+        </div>
+
+        <!-- Average Profit -->
+        <div class="performance-card">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-white">গড় প্রফিট</h3>
+                <i class="fas fa-chart-line text-2xl text-purple-400"></i>
+            </div>
+            <div class="stat-value text-purple-400" id="avgProfit">${{ "%.2f"|format(avg_profit) }}</div>
+            <div class="text-sm text-gray-400 mt-2">প্রতি ট্রেডে গড় আয়</div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Performance Chart -->
+        <div class="chart-container metric-large">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-white">পারফরম্যান্স ট্রেন্ড</h3>
+                <div class="text-sm text-gray-400" id="chartPeriod">Last 7 Days</div>
+            </div>
+            <canvas id="performanceChart" height="300"></canvas>
+        </div>
+
+        <!-- Distribution Chart -->
+        <div class="chart-container">
+            <h3 class="text-lg font-semibold text-white mb-4">ট্রেড ডিস্ট্রিবিউশন</h3>
+            <canvas id="distributionChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Detailed Statistics -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Win/Loss Statistics -->
+        <div class="performance-card">
+            <h3 class="text-lg font-semibold text-white mb-4">জয়/হার স্ট্যাটিস্টিক্স</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value text-green-400">{{ profitable_trades }}</div>
+                    <div class="stat-label">সফল ট্রেড</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value text-red-400">{{ total_trades - profitable_trades }}</div>
+                    <div class="stat-label">ব্যর্থ ট্রেড</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value text-cyan-400" id="winLossRatio">
+                        {% if total_trades > 0 %}
+                            {{ "%.2f"|format(profitable_trades / (total_trades - profitable_trades)) if (total_trades - profitable_trades) > 0 else "N/A" }}
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">জয়/হার রেশিও</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value text-yellow-400" id="avgWinRate">
+                        {% if profitable_trades > 0 %}
+                            {{ "%.2f"|format(total_profit / profitable_trades) }}
+                        {% else %}
+                            0.00
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">গড় জয় ($)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Metrics -->
+        <div class="performance-card">
+            <h3 class="text-lg font-semibold text-white mb-4">রিস্ক মেট্রিক্স</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-300">ম্যাক্স ড্রডাউন</span>
+                        <span class="text-red-400" id="maxDrawdown">2.5%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-red-500 h-2 rounded-full" style="width: 25%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-300">শার্প রেশিও</span>
+                        <span class="text-green-400" id="sharpeRatio">1.8</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full" style="width: 60%"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-300">ভোলাটিলিটি</span>
+                        <span class="text-yellow-400" id="volatility">12.3%</span>
+                    </div>
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div class="bg-yellow-500 h-2 rounded-full" style="width: 41%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Pairs Performance -->
+        <div class="performance-card">
+            <h3 class="text-lg font-semibold text-white mb-4">ট্রেডিং পেয়ার পারফরম্যান্স</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300">EUR/USD</span>
+                    <span class="win-rate-badge win-rate-high">84%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300">GBP/USD</span>
+                    <span class="win-rate-badge win-rate-medium">76%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300">XAU/USD</span>
+                    <span class="win-rate-badge win-rate-high">89%</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-300">BTC/USD</span>
+                    <span class="win-rate-badge win-rate-low">65%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Trades Table -->
+    <div class="performance-card">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-white">সাম্প্রতিক ট্রেড</h3>
+            <button class="text-sm text-cyan-400 hover:text-cyan-300" id="viewAllTrades">
+                সব দেখুন <i class="fas fa-arrow-right ml-1"></i>
+            </button>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="trades-table">
+                <thead>
+                    <tr>
+                        <th>ট্রেড ID</th>
+                        <th>সিম্বল</th>
+                        <th>অ্যাকশন</th>
+                        <th>ভলিউম</th>
+                        <th>এন্ট্রি প্রাইস</th>
+                        <th>এগজিট প্রাইস</th>
+                        <th>P/L</th>
+                        <th>সময়</th>
+                    </tr>
+                </thead>
+                <tbody id="recentTradesTable">
+                    {% if trades %}
+                        {% for trade in trades[:10] %}
+                        <tr>
+                            <td class="text-gray-300">{{ trade.trade_id[:8] }}...</td>
+                            <td class="font-semibold">{{ trade.symbol }}</td>
+                            <td>
+                                <span class="{% if trade.action == 'BUY' %}text-green-400{% else %}text-red-400{% endif %}">
+                                    {{ trade.action }}
+                                </span>
+                            </td>
+                            <td class="text-gray-300">{{ "%.2f"|format(trade.volume|default(0.01)) }}</td>
+                            <td class="text-gray-300">{{ "%.4f"|format(trade.entry_price|default(0)) }}</td>
+                            <td class="text-gray-300">
+                                {% if trade.exit_price %}
+                                    {{ "%.4f"|format(trade.exit_price) }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="{% if trade.profit_loss and trade.profit_loss > 0 %}profit-positive{% else %}profit-negative{% endif %}">
+                                {% if trade.profit_loss %}
+                                    ${{ "%.2f"|format(trade.profit_loss) }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td class="text-gray-400 text-sm">
+                                {% if trade.open_time %}
+                                    {{ trade.open_time.strftime('%H:%M') }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-gray-500 py-4">
+                                কোনো ট্রেড ডাটা পাওয়া যায়নি
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+class AnalyticsDashboard {
+    constructor() {
+        this.currentPeriod = '7d';
+        this.initializeAnalytics();
+    }
+
+    initializeAnalytics() {
+        console.log('📊 Analytics Dashboard Initializing...');
+        
+        this.setupEventListeners();
+        this.initializeCharts();
+        this.loadAnalyticsData();
+        
+        console.log('✅ Analytics Dashboard Ready');
+    }
+
+    setupEventListeners() {
+        // Time filter buttons
+        document.querySelectorAll('.time-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.changeTimePeriod(btn.dataset.period);
+            });
+        });
+
+        // Export button
+        document.getElementById('exportAnalytics')?.addEventListener('click', () => {
+            this.exportAnalyticsReport();
+        });
+
+        // View all trades
+        document.getElementById('viewAllTrades')?.addEventListener('click', () => {
+            this.viewAllTrades();
+        });
+    }
+
+    initializeCharts() {
+        // Initialize performance chart
+        this.initializePerformanceChart();
+        
+        // Initialize distribution chart
+        this.initializeDistributionChart();
+    }
+
+    initializePerformanceChart() {
+        const ctx = document.getElementById('performanceChart')?.getContext('2d');
+        if (!ctx) return;
+
+        // Sample performance data
+        const data = {
+            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7'],
+            datasets: [{
+                label: 'Portfolio Value',
+                data: [1000, 1020, 1015, 1035, 1050, 1040, 1060],
+                borderColor: '#0ea5e9',
+                backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                fill: true,
+                tension: 0.4
+            }]
+        };
+
+        this.performanceChart = new Chart(ctx, {
+            type: 'line',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                return `Value: $${context.parsed.y.toFixed(2)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            color: '#334155'
+                        },
+                        ticks: {
+                            color: '#94a3b8'
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: '#334155'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            callback: function(value) {
+                                return '$' + value;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    initializeDistributionChart() {
+        const ctx = document.getElementById('distributionChart')?.getContext('2d');
+        if (!ctx) return;
+
+        const data = {
+            labels: ['EUR/USD', 'GBP/USD', 'XAU/USD', 'BTC/USD', 'Others'],
+            datasets: [{
+                data: [35, 25, 20, 15, 5],
+                backgroundColor: [
+                    '#0ea5e9',
+                    '#22c55e',
+                    '#f59e0b',
+                    '#ef4444',
+                    '#8b5cf6'
+                ],
+                borderWidth: 2,
+                borderColor: '#1e293b'
+            }]
+        };
+
+        this.distributionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#94a3b8',
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    changeTimePeriod(period) {
+        this.currentPeriod = period;
+        
+        // Update active button
+        document.querySelectorAll('.time-filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.period === period);
+        });
+        
+        // Update chart period label
+        const periodLabels = {
+            '7d': 'Last 7 Days',
+            '30d': 'Last 30 Days',
+            '90d': 'Last 90 Days',
+            '1y': 'Last 1 Year'
+        };
+        
+        document.getElementById('chartPeriod').textContent = periodLabels[period] || 'Custom Period';
+        
+        // Reload data for new period
+        this.loadAnalyticsData();
+    }
+
+    async loadAnalyticsData() {
+        try {
+            // Simulate API call to get analytics data
+            const analyticsData = await this.fetchAnalyticsData(this.currentPeriod);
+            this.updateAnalyticsDisplay(analyticsData);
+        } catch (error) {
+            console.error('Analytics data load failed:', error);
+        }
+    }
+
+    async fetchAnalyticsData(period) {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Sample analytics data
+        return {
+            totalProfit: 245.67,
+            successRate: 83.5,
+            totalTrades: 142,
+            avgProfit: 1.73,
+            profitableTrades: 118,
+            losingTrades: 24,
+            winLossRatio: 4.92,
+            avgWin: 2.08,
+            maxDrawdown: 2.5,
+            sharpeRatio: 1.8,
+            volatility: 12.3
+        };
+    }
+
+    updateAnalyticsDisplay(data) {
+        // Update key metrics
+        document.getElementById('totalProfit').textContent = `$${data.totalProfit.toFixed(2)}`;
+        document.getElementById('successRate').textContent = `${data.successRate.toFixed(1)}%`;
+        document.getElementById('totalTrades').textContent = data.totalTrades;
+        document.getElementById('avgProfit').textContent = `$${data.avgProfit.toFixed(2)}`;
+        
+        // Update win/loss statistics
+        document.getElementById('winLossRatio').textContent = data.winLossRatio.toFixed(2);
+        document.getElementById('avgWinRate').textContent = `$${data.avgWin.toFixed(2)}`;
+        
+        // Update risk metrics
+        document.getElementById('maxDrawdown').textContent = `${data.maxDrawdown}%`;
+        document.getElementById('sharpeRatio').textContent = data.sharpeRatio.toFixed(1);
+        document.getElementById('volatility').textContent = `${data.volatility}%`;
+        
+        // Update charts with new data
+        this.updateCharts(data);
+    }
+
+    updateCharts(data) {
+        // Update performance chart with new data based on period
+        if (this.performanceChart) {
+            // This would typically fetch new data from the server
+            // For demo, we'll just animate the existing data
+            this.performanceChart.update();
+        }
+        
+        if (this.distributionChart) {
+            this.distributionChart.update();
+        }
+    }
+
+    exportAnalyticsReport() {
+        const reportData = {
+            period: this.currentPeriod,
+            timestamp: new Date().toISOString(),
+            metrics: {
+                totalProfit: document.getElementById('totalProfit').textContent,
+                successRate: document.getElementById('successRate').textContent,
+                totalTrades: document.getElementById('totalTrades').textContent,
+                avgProfit: document.getElementById('avgProfit').textContent
+            }
+        };
+        
+        const reportText = `
+Exness AI Trading Analytics Report
+Period: ${this.currentPeriod}
+Generated: ${new Date().toLocaleDateString()}
+
+Key Metrics:
+- Total Profit: ${reportData.metrics.totalProfit}
+- Success Rate: ${reportData.metrics.successRate}
+- Total Trades: ${reportData.metrics.totalTrades}
+- Average Profit: ${reportData.metrics.avgProfit}
+
+Risk Metrics:
+- Max Drawdown: ${document.getElementById('maxDrawdown').textContent}
+- Sharpe Ratio: ${document.getElementById('sharpeRatio').textContent}
+- Volatility: ${document.getElementById('volatility').textContent}
+        `.trim();
+        
+        const blob = new Blob([reportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics-report-${this.currentPeriod}-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('এনালাইটিক্স রিপোর্ট এক্সপোর্ট করা হয়েছে', 'success');
+    }
+
+    viewAllTrades() {
+        // Navigate to detailed trades page or show modal
+        this.showNotification('সমস্ত ট্রেড দেখানো হচ্ছে...', 'info');
+        // Implementation would depend on your application structure
+    }
+
+    showNotification(message, type) {
+        if (window.exnessAI && window.exnessAI.showNotification) {
+            window.exnessAI.showNotification(message, type);
+        } else {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    }
+}
+
+// Initialize analytics dashboard when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.analyticsDashboard = new AnalyticsDashboard();
+});
+</script>
+{% endblock %}
