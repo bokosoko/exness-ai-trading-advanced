@@ -1,1 +1,607 @@
 
+{% extends "base.html" %}
+
+{% block title %}AI অ্যাসিস্ট্যান্ট - Exness AI Trading{% endblock %}
+
+{% block page_title %}AI ট্রেডিং অ্যাসিস্ট্যান্ট{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-container {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-bottom: 1px solid #334155;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chat-input-area {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-top: 1px solid #334155;
+}
+
+.message {
+    display: flex;
+    gap: 1rem;
+    max-width: 80%;
+    animation: messageSlide 0.3s ease;
+}
+
+.message.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.message.assistant {
+    align-self: flex-start;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.avatar.user {
+    background: #0ea5e9;
+}
+
+.avatar.assistant {
+    background: #22c55e;
+}
+
+.message-content {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 1rem;
+    padding: 1rem;
+    position: relative;
+}
+
+.message.user .message-content {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+    color: white;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message.assistant .message-content {
+    background: #1e293b;
+    border-color: #334155;
+    color: white;
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message-text {
+    line-height: 1.5;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    margin-top: 0.5rem;
+    text-align: right;
+}
+
+.message-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.action-btn:hover {
+    opacity: 1;
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #94a3b8;
+    animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.quick-action-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.quick-action-btn:hover {
+    border-color: #475569;
+    transform: translateY(-2px);
+}
+
+.quick-action-btn i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.chat-input-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.chat-input {
+    flex: 1;
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+    color: white;
+    resize: none;
+    min-height: 60px;
+    max-height: 120px;
+    font-family: inherit;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #0ea5e9;
+}
+
+.send-btn {
+    background: #0ea5e9;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.send-btn:hover:not(:disabled) {
+    background: #0284c7;
+    transform: translateY(-2px);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.voice-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.voice-btn:hover {
+    border-color: #475569;
+}
+
+.voice-btn.listening {
+    background: #ef4444;
+    border-color: #ef4444;
+    animation: pulse 2s infinite;
+}
+
+.chat-controls {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.control-btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.control-btn:hover {
+    border-color: #475569;
+}
+
+.suggested-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.suggestion-chip {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.875rem;
+}
+
+.suggestion-chip:hover {
+    background: #0ea5e9;
+    border-color: #0ea5e9;
+}
+
+@keyframes messageSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes typingBounce {
+    0%, 80%, 100% {
+        transform: scale(0.8);
+        opacity: 0.5;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.trading-term {
+    color: #0ea5e9;
+    font-weight: 600;
+}
+
+.signal-buy {
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.signal-sell {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.risk-term {
+    color: #f59e0b;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        height: 60vh;
+    }
+    
+    .message {
+        max-width: 90%;
+    }
+    
+    .quick-actions {
+        grid-template-columns: 1fr;
+    }
+    
+    .chat-input-wrapper {
+        flex-direction: column;
+    }
+    
+    .send-btn, .voice-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- AI Chat Header -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fas fa-robot text-cyan-400"></i>
+                    AI ট্রেডিং অ্যাসিস্ট্যান্ট
+                </h2>
+                <p class="text-gray-400 mt-1">Gemini AI-powered trading assistant for real-time market analysis and guidance</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="text-sm text-gray-400">
+                    <span>স্ট্যাটাস: </span>
+                    <span class="text-green-400">অনলাইন</span>
+                </div>
+                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="quick-action-btn" data-action="market">
+            <i class="fas fa-chart-line text-cyan-400"></i>
+            <div class="font-semibold">মার্কেট এনালাইসিস</div>
+            <div class="text-sm text-gray-400 mt-1">বর্তমান মার্কেট কন্ডিশন</div>
+        </div>
+        <div class="quick-action-btn" data-action="signals">
+            <i class="fas fa-bolt text-yellow-400"></i>
+            <div class="font-semibold">ট্রেডিং সিগন্যাল</div>
+            <div class="text-sm text-gray-400 mt-1">আজকের সেরা সুযোগ</div>
+        </div>
+        <div class="quick-action-btn" data-action="risk">
+            <i class="fas fa-shield-alt text-red-400"></i>
+            <div class="font-semibold">রিস্ক অ্যাসেসমেন্ট</div>
+            <div class="text-sm text-gray-400 mt-1">রিস্ক ম্যানেজমেন্ট গাইড</div>
+        </div>
+        <div class="quick-action-btn" data-action="performance">
+            <i class="fas fa-trophy text-green-400"></i>
+            <div class="font-semibold">পারফরম্যান্স রিভিউ</div>
+            <div class="text-sm text-gray-400 mt-1">ট্রেডিং পারফরম্যান্স</div>
+        </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-white">AI অ্যাসিস্ট্যান্ট চ্যাট</h3>
+                <div class="flex items-center gap-2">
+                    <button class="control-btn" id="clearChat">
+                        <i class="fas fa-trash"></i>
+                        ক্লিয়ার
+                    </button>
+                    <button class="control-btn" id="exportChat">
+                        <i class="fas fa-download"></i>
+                        এক্সপোর্ট
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+            <!-- Suggested Questions -->
+            <div class="suggested-questions">
+                <div class="suggestion-chip" data-question="বর্তমান মার্কেট ট্রেন্ড কি?">
+                    📈 মার্কেট ট্রেন্ড
+                </div>
+                <div class="suggestion-chip" data-question="আজকের জন্য কোন ট্রেডিং সুযোগ আছে?">
+                    💡 ট্রেডিং সুযোগ
+                </div>
+                <div class="suggestion-chip" data-question="রিস্ক কিভাবে ম্যানেজ করব?">
+                    🛡️ রিস্ক ম্যানেজমেন্ট
+                </div>
+                <div class="suggestion-chip" data-question="AI ট্রেডিং কিভাবে কাজ করে?">
+                    🤖 AI সিস্টেম
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-wrapper">
+                <textarea 
+                    class="chat-input" 
+                    id="chatInput" 
+                    placeholder="আপনার প্রশ্ন লিখুন... (Ctrl+Enter to send)"
+                    rows="3"
+                ></textarea>
+                
+                <button class="voice-btn" id="voiceBtn" title="ভয়েস ইনপুট">
+                    <i class="fas fa-microphone"></i>
+                </button>
+                
+                <button class="send-btn" id="sendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                    পাঠান
+                </button>
+            </div>
+
+            <!-- Additional Controls -->
+            <div class="chat-controls">
+                <button class="control-btn" id="suggestionsBtn">
+                    <i class="fas fa-lightbulb"></i>
+                    সুজেশন নিন
+                </button>
+                <button class="control-btn" id="analysisBtn">
+                    <i class="fas fa-chart-bar"></i>
+                    এনালাইসিস করুন
+                </button>
+                <button class="control-btn" id="helpBtn">
+                    <i class="fas fa-question-circle"></i>
+                    সাহায্য
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Features Info -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-brain text-2xl text-cyan-400"></i>
+                <h4 class="font-semibold text-white">Gemini AI পাওয়ার্ড</h4>
+            </div>
+            <p class="text-sm text-gray-400">
+                উন্নত AI টেকনোলজি ব্যবহার করে রিয়েল-টাইম মার্কেট এনালাইসিস এবং ট্রেডিং রিকোমেন্ডেশন।
+            </p>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-comments text-2xl text-green-400"></i>
+                <h4 class="font-semibold text-white">বহুভাষিক সাপোর্ট</h4>
+            </div>
+            <p class="text-sm text-gray-400">
+                বাংলা এবং ইংরেজি উভয় ভাষায় কথা বলুন। AI স্বয়ংক্রিয়ভাবে ভাষা শনাক্ত করে উত্তর দেবে।
+            </p>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-chart-line text-2xl text-yellow-400"></i>
+                <h4 class="font-semibold text-white">রিয়েল-টাইম ডাটা</h4>
+            </div>
+            <p class="text-sm text-gray-400">
+                লাইভ মার্কেট ডাটা এবং ট্রেডিং সিগন্যালের উপর ভিত্তি করে সঠিক এবং সময়োপযোগী তথ্য।
+            </p>
+        </div>
+    </div>
+</div>
+
+<script>
+// AI Chat functionality is already implemented in ai_chat.js
+// This template uses the AIChatAssistant class from ai_chat.js
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Quick action buttons
+    document.querySelectorAll('.quick-action-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            handleQuickAction(action);
+        });
+    });
+
+    // Suggested questions
+    document.querySelectorAll('.suggestion-chip').forEach(chip => {
+        chip.addEventListener('click', function() {
+            const question = this.dataset.question;
+            document.getElementById('chatInput').value = question;
+            document.getElementById('chatInput').focus();
+        });
+    });
+
+    // Control buttons
+    document.getElementById('suggestionsBtn')?.addEventListener('click', function() {
+        if (window.aiChat) {
+            window.aiChat.askAboutSignals();
+        }
+    });
+
+    document.getElementById('analysisBtn')?.addEventListener('click', function() {
+        if (window.aiChat) {
+            window.aiChat.askAboutMarket();
+        }
+    });
+
+    document.getElementById('helpBtn')?.addEventListener('click', function() {
+        document.getElementById('chatInput').value = 'AI ট্রেডিং সিস্টেম কিভাবে ব্যবহার করব?';
+        document.getElementById('chatInput').focus();
+    });
+
+    function handleQuickAction(action) {
+        let question = '';
+        
+        switch (action) {
+            case 'market':
+                question = 'বর্তমান মার্কেট কন্ডিশন এবং ট্রেন্ড সম্পর্কে বলুন';
+                break;
+            case 'signals':
+                question = 'আজকের জন্য সেরা ট্রেডিং সিগন্যাল কি কি?';
+                break;
+            case 'risk':
+                question = 'ট্রেডিং এ রিস্ক কিভাবে ম্যানেজ করব?';
+                break;
+            case 'performance':
+                question = 'আমার ট্রেডিং পারফরম্যান্স কিভাবে ইম্প্রুভ করতে পারি?';
+                break;
+        }
+        
+        if (question && window.aiChat) {
+            document.getElementById('chatInput').value = question;
+            window.aiChat.sendMessage();
+        }
+    }
+
+    // Auto-resize textarea
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            if (window.aiChat) {
+                window.aiChat.sendMessage();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
