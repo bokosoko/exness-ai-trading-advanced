@@ -1,1 +1,842 @@
+{% extends "base.html" %}
 
+{% block title %}লাইভ প্রিভিউ - Exness AI Trading{% endblock %}
+
+{% block page_title %}লাইভ ট্রেডিং প্রিভিউ{% endblock %}
+
+{% block extra_css %}
+<style>
+.preview-container {
+    background: linear-gradient(145deg, #0f172a, #1e293b);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.preview-header {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-bottom: 1px solid #334155;
+    display: flex;
+    justify-content: between;
+    align-items: center;
+}
+
+.preview-content {
+    height: 600px;
+    overflow-y: auto;
+    padding: 1rem;
+    font-family: 'Courier New', monospace;
+    background: #0f172a;
+}
+
+.preview-footer {
+    background: #1e293b;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #334155;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.live-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #22c55e;
+    font-weight: 600;
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+.preview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: #1e293b;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #94a3b8;
+}
+
+.trade-log {
+    background: #1e293b;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.log-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    border-bottom: 1px solid #334155;
+    font-size: 0.875rem;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-time {
+    color: #64748b;
+    font-size: 0.75rem;
+}
+
+.log-symbol {
+    font-weight: 600;
+}
+
+.log-action {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.action-buy {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.action-sell {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.log-profit {
+    font-weight: 600;
+}
+
+.profit-positive {
+    color: #22c55e;
+}
+
+.profit-negative {
+    color: #ef4444;
+}
+
+.market-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.market-pair {
+    background: #1e293b;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.market-pair:hover {
+    border-color: #475569;
+    transform: translateY(-2px);
+}
+
+.pair-price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.pair-change {
+    font-size: 0.875rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.change-positive {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+}
+
+.change-negative {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.control-panel {
+    background: #1e293b;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #334155;
+}
+
+.control-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes newEntry {
+    from {
+        background: rgba(34, 197, 94, 0.2);
+    }
+    to {
+        background: transparent;
+    }
+}
+
+.new-entry {
+    animation: newEntry 2s ease;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Live Preview Header -->
+    <div class="preview-container">
+        <div class="preview-header">
+            <div>
+                <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                    <i class="fas fa-eye text-cyan-400"></i>
+                    লাইভ ট্রেডিং প্রিভিউ
+                    <span class="live-indicator">
+                        <span class="pulse-dot"></span>
+                        LIVE
+                    </span>
+                </h2>
+                <p class="text-gray-400 mt-1">রিয়েল-টাইম AI ট্রেডিং এক্টিভিটি মনিটরিং</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="exportLogs" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+                    <i class="fas fa-download mr-2"></i>এক্সপোর্ট
+                </button>
+                <button id="clearLogs" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200">
+                    <i class="fas fa-trash mr-2"></i>ক্লিয়ার
+                </button>
+            </div>
+        </div>
+
+        <!-- Preview Stats -->
+        <div class="p-6 border-b border-gray-700">
+            <div class="preview-stats">
+                <div class="stat-card">
+                    <div class="stat-value text-green-400" id="previewBalance">$0.00</div>
+                    <div class="stat-label">বর্তমান ব্যালেন্স</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-cyan-400" id="previewTarget">$7.00</div>
+                    <div class="stat-label">টার্গেট ব্যালেন্স</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-yellow-400" id="previewTrades">0</div>
+                    <div class="stat-label">এক্টিভ ট্রেড</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value text-purple-400" id="previewSuccessRate">0%</div>
+                    <div class="stat-label">সাফল্যের হার</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Preview Content -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column - Trading Log -->
+                <div class="lg:col-span-2">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-white">
+                            <i class="fas fa-list-alt mr-2 text-primary-400"></i>
+                            ট্রেডিং লগ
+                        </h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-gray-400" id="logCount">0 entries</span>
+                            <button id="autoScroll" class="text-green-400 text-sm font-semibold">
+                                <i class="fas fa-check-circle mr-1"></i>Auto Scroll
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-content" id="tradingLog">
+                        <div class="text-center py-8 text-gray-500">
+                            <i class="fas fa-robot text-4xl mb-3"></i>
+                            <p class="text-lg">AI ট্রেডিং সিস্টেম প্রস্তুত</p>
+                            <p class="text-sm mt-1">ট্রেডিং শুরু করলে রিয়েল-টাইম লগ দেখানো হবে</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Market Overview & Controls -->
+                <div class="space-y-6">
+                    <!-- Market Overview -->
+                    <div class="bg-gray-800 rounded-xl border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-chart-line mr-2 text-green-400"></i>
+                            মার্কেট ওভারভিউ
+                        </h3>
+                        <div class="market-overview" id="marketOverview">
+                            <!-- Market pairs will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Trading Signals -->
+                    <div class="bg-gray-800 rounded-xl border border-gray-700 p-4">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-bolt mr-2 text-yellow-400"></i>
+                            এক্টিভ সিগন্যাল
+                        </h3>
+                        <div id="activeSignals" class="space-y-2">
+                            <!-- Trading signals will be loaded here -->
+                            <div class="text-center py-4 text-gray-500">
+                                <p class="text-sm">কোনো এক্টিভ সিগন্যাল নেই</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Controls -->
+                    <div class="control-panel">
+                        <h3 class="text-lg font-semibold text-white mb-4 flex items-center">
+                            <i class="fas fa-sliders-h mr-2 text-cyan-400"></i>
+                            কুইক কন্ট্রোল
+                        </h3>
+                        <div class="control-buttons">
+                            <button id="previewStart" class="bg-green-500 text-white py-3 rounded-lg font-semibold hover:bg-green-600 transition duration-200">
+                                <i class="fas fa-play mr-2"></i>শুরু
+                            </button>
+                            <button id="previewStop" class="bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition duration-200">
+                                <i class="fas fa-stop mr-2"></i>বন্ধ
+                            </button>
+                            <button id="previewPause" class="bg-yellow-500 text-white py-3 rounded-lg font-semibold hover:bg-yellow-600 transition duration-200">
+                                <i class="fas fa-pause mr-2"></i>পজ
+                            </button>
+                            <button id="previewRefresh" class="bg-blue-500 text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition duration-200">
+                                <i class="fas fa-sync mr-2"></i>রিফ্রেশ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Footer -->
+        <div class="preview-footer">
+            <div class="text-sm text-gray-400">
+                <span id="lastUpdate">লাস্ট আপডেট: --</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-sm">
+                    <span class="text-gray-400">কানেকশন: </span>
+                    <span id="connectionStatus" class="text-red-400">ডিসকানেক্টেড</span>
+                </div>
+                <div class="text-sm">
+                    <span class="text-gray-400">AI স্ট্যাটাস: </span>
+                    <span id="aiStatus" class="text-red-400">ইনএক্টিভ</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">সেশন সময়</p>
+                    <p class="text-xl font-bold text-white" id="sessionTime">00:00:00</p>
+                </div>
+                <i class="fas fa-clock text-2xl text-cyan-400"></i>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">মোট ট্রেড</p>
+                    <p class="text-xl font-bold text-white" id="totalTrades">0</p>
+                </div>
+                <i class="fas fa-exchange-alt text-2xl text-green-400"></i>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">নেট প্রফিট</p>
+                    <p class="text-xl font-bold text-white" id="netProfit">$0.00</p>
+                </div>
+                <i class="fas fa-chart-line text-2xl text-yellow-400"></i>
+            </div>
+        </div>
+        
+        <div class="bg-gray-800 rounded-lg p-4 border border-gray-700">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-400 text-sm">গড় ডুরেশন</p>
+                    <p class="text-xl font-bold text-white" id="avgDuration">0s</p>
+                </div>
+                <i class="fas fa-hourglass-half text-2xl text-purple-400"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+class LivePreview {
+    constructor() {
+        this.isAutoScroll = true;
+        this.logEntries = [];
+        this.updateInterval = null;
+        this.sessionStartTime = null;
+        this.initializePreview();
+    }
+
+    initializePreview() {
+        console.log('👁️ Live Preview Initializing...');
+        
+        this.setupEventListeners();
+        this.startLiveUpdates();
+        this.loadMarketOverview();
+        
+        console.log('✅ Live Preview Ready');
+    }
+
+    setupEventListeners() {
+        // Control buttons
+        document.getElementById('previewStart')?.addEventListener('click', () => {
+            this.startTrading();
+        });
+        
+        document.getElementById('previewStop')?.addEventListener('click', () => {
+            this.stopTrading();
+        });
+        
+        document.getElementById('previewPause')?.addEventListener('click', () => {
+            this.pauseTrading();
+        });
+        
+        document.getElementById('previewRefresh')?.addEventListener('click', () => {
+            this.refreshData();
+        });
+        
+        // Log controls
+        document.getElementById('autoScroll')?.addEventListener('click', () => {
+            this.toggleAutoScroll();
+        });
+        
+        document.getElementById('exportLogs')?.addEventListener('click', () => {
+            this.exportLogs();
+        });
+        
+        document.getElementById('clearLogs')?.addEventListener('click', () => {
+            this.clearLogs();
+        });
+    }
+
+    startLiveUpdates() {
+        this.updateInterval = setInterval(() => {
+            this.updatePreviewData();
+        }, 2000); // Update every 2 seconds
+    }
+
+    async updatePreviewData() {
+        try {
+            const response = await fetch('/get_live_data');
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                this.processLiveData(result.data);
+            }
+        } catch (error) {
+            console.error('Preview data update failed:', error);
+            this.updateConnectionStatus(false);
+        }
+    }
+
+    processLiveData(data) {
+        // Update basic info
+        this.updateBasicInfo(data);
+        
+        // Update trading log
+        this.updateTradingLog(data);
+        
+        // Update market overview
+        this.updateMarketOverview(data);
+        
+        // Update active signals
+        this.updateActiveSignals(data);
+        
+        // Update performance metrics
+        this.updatePerformanceMetrics(data);
+        
+        // Update last update time
+        this.updateLastUpdateTime();
+        
+        // Update connection status
+        this.updateConnectionStatus(true);
+    }
+
+    updateBasicInfo(data) {
+        // Update balance
+        const balance = data.session_info?.current_balance || 0;
+        document.getElementById('previewBalance').textContent = `$${balance.toFixed(2)}`;
+        
+        // Update target
+        const target = data.session_info?.target_balance || 7;
+        document.getElementById('previewTarget').textContent = `$${target.toFixed(2)}`;
+        
+        // Update active trades
+        const activeTrades = data.active_trades?.length || 0;
+        document.getElementById('previewTrades').textContent = activeTrades;
+        
+        // Update success rate
+        const successRate = data.performance?.success_rate || 0;
+        document.getElementById('previewSuccessRate').textContent = `${Math.round(successRate)}%`;
+        
+        // Update AI status
+        const aiStatus = data.session_info?.status === 'running' ? 'এক্টিভ' : 'ইনএক্টিভ';
+        const aiStatusColor = data.session_info?.status === 'running' ? 'text-green-400' : 'text-red-400';
+        document.getElementById('aiStatus').textContent = aiStatus;
+        document.getElementById('aiStatus').className = aiStatusColor;
+    }
+
+    updateTradingLog(data) {
+        const logContainer = document.getElementById('tradingLog');
+        if (!logContainer) return;
+        
+        // Add new trades to log
+        if (data.trading_history && data.trading_history.length > 0) {
+            const newTrades = data.trading_history.slice(this.logEntries.length);
+            
+            newTrades.forEach(trade => {
+                this.addLogEntry(trade);
+            });
+            
+            this.logEntries = data.trading_history;
+        }
+        
+        // Update log count
+        document.getElementById('logCount').textContent = `${this.logEntries.length} entries`;
+        
+        // Auto scroll to bottom
+        if (this.isAutoScroll) {
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+    }
+
+    addLogEntry(trade) {
+        const logContainer = document.getElementById('tradingLog');
+        if (!logContainer) return;
+        
+        // Clear placeholder if it exists
+        if (logContainer.querySelector('.text-center')) {
+            logContainer.innerHTML = '';
+        }
+        
+        const logEntry = document.createElement('div');
+        logEntry.className = 'log-entry new-entry';
+        
+        const time = new Date(trade.timestamp || trade.open_time).toLocaleTimeString('bn-BD');
+        const actionClass = trade.action === 'BUY' ? 'action-buy' : 'action-sell';
+        const profit = trade.profit_loss || 0;
+        const profitClass = profit >= 0 ? 'profit-positive' : 'profit-negative';
+        const profitSign = profit >= 0 ? '+' : '';
+        
+        logEntry.innerHTML = `
+            <div class="flex items-center gap-3">
+                <span class="log-time">${time}</span>
+                <span class="log-symbol">${trade.symbol}</span>
+                <span class="log-action ${actionClass}">${trade.action}</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-gray-400">${trade.volume || 0.01} lot</span>
+                <span class="log-profit ${profitClass}">${profitSign}$${Math.abs(profit).toFixed(2)}</span>
+            </div>
+        `;
+        
+        logContainer.appendChild(logEntry);
+        
+        // Remove new entry animation after it completes
+        setTimeout(() => {
+            logEntry.classList.remove('new-entry');
+        }, 2000);
+    }
+
+    updateMarketOverview(data) {
+        const container = document.getElementById('marketOverview');
+        if (!container) return;
+        
+        if (data.market_overview && data.market_overview.length > 0) {
+            let html = '';
+            
+            data.market_overview.forEach(pair => {
+                const changeClass = pair.change >= 0 ? 'change-positive' : 'change-negative';
+                const changeIcon = pair.change >= 0 ? 'fa-arrow-up' : 'fa-arrow-down';
+                
+                html += `
+                    <div class="market-pair">
+                        <div class="text-sm text-gray-400">${pair.symbol}</div>
+                        <div class="pair-price">${pair.price.toFixed(4)}</div>
+                        <div class="${changeClass}">
+                            <i class="fas ${changeIcon} mr-1"></i>
+                            ${Math.abs(pair.change).toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+    }
+
+    updateActiveSignals(data) {
+        const container = document.getElementById('activeSignals');
+        if (!container) return;
+        
+        if (data.trading_signals && data.trading_signals.length > 0) {
+            let html = '';
+            
+            data.trading_signals.forEach(signal => {
+                const confidenceClass = signal.confidence > 0.8 ? 'text-green-400' : 
+                                      signal.confidence > 0.6 ? 'text-yellow-400' : 'text-red-400';
+                
+                html += `
+                    <div class="bg-gray-700 p-3 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-semibold text-white">${signal.symbol}</span>
+                            <span class="text-sm ${confidenceClass}">
+                                ${Math.round(signal.confidence * 100)}%
+                            </span>
+                        </div>
+                        <div class="flex justify-between text-sm">
+                            <span class="text-gray-400">${signal.action}</span>
+                            <span class="text-cyan-400">RR: ${signal.rr_ratio?.toFixed(2) || '1.00'}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `
+                <div class="text-center py-4 text-gray-500">
+                    <p class="text-sm">কোনো এক্টিভ সিগন্যাল নেই</p>
+                </div>
+            `;
+        }
+    }
+
+    updatePerformanceMetrics(data) {
+        // Session time
+        if (data.session_info?.start_time && !this.sessionStartTime) {
+            this.sessionStartTime = new Date(data.session_info.start_time);
+        }
+        
+        if (this.sessionStartTime) {
+            this.updateSessionTimer();
+        }
+        
+        // Total trades
+        const totalTrades = data.performance?.total_trades || 0;
+        document.getElementById('totalTrades').textContent = totalTrades;
+        
+        // Net profit
+        const netProfit = data.performance?.total_profit || 0;
+        document.getElementById('netProfit').textContent = `$${netProfit.toFixed(2)}`;
+        document.getElementById('netProfit').className = `text-xl font-bold ${netProfit >= 0 ? 'text-green-400' : 'text-red-400'}`;
+        
+        // Average duration
+        const avgDuration = data.performance?.avg_trade_duration || 0;
+        document.getElementById('avgDuration').textContent = `${Math.round(avgDuration)}s`;
+    }
+
+    updateSessionTimer() {
+        if (!this.sessionStartTime) return;
+        
+        const now = new Date();
+        const diff = Math.floor((now - this.sessionStartTime) / 1000);
+        
+        const hours = Math.floor(diff / 3600);
+        const minutes = Math.floor((diff % 3600) / 60);
+        const seconds = diff % 60;
+        
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        document.getElementById('sessionTime').textContent = timeString;
+    }
+
+    updateLastUpdateTime() {
+        const now = new Date().toLocaleTimeString('bn-BD');
+        document.getElementById('lastUpdate').textContent = `লাস্ট আপডেট: ${now}`;
+    }
+
+    updateConnectionStatus(connected) {
+        const statusElement = document.getElementById('connectionStatus');
+        if (statusElement) {
+            statusElement.textContent = connected ? 'কানেক্টেড' : 'ডিসকানেক্টেড';
+            statusElement.className = connected ? 'text-green-400' : 'text-red-400';
+        }
+    }
+
+    async startTrading() {
+        try {
+            const response = await fetch('/start_trading', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    initial_amount: 5,
+                    target_amount: 7
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                this.showNotification('ট্রেডিং শুরু হয়েছে!', 'success');
+                this.sessionStartTime = new Date();
+            } else {
+                this.showNotification(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Start trading failed:', error);
+            this.showNotification('ট্রেডিং শুরু করতে ব্যর্থ', 'error');
+        }
+    }
+
+    async stopTrading() {
+        try {
+            const response = await fetch('/stop_trading', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                this.showNotification('ট্রেডিং বন্ধ করা হয়েছে', 'warning');
+                this.sessionStartTime = null;
+            } else {
+                this.showNotification(result.message, 'error');
+            }
+        } catch (error) {
+            console.error('Stop trading failed:', error);
+            this.showNotification('ট্রেডিং বন্ধ করতে ব্যর্থ', 'error');
+        }
+    }
+
+    pauseTrading() {
+        this.showNotification('ট্রেডিং temporarily paused', 'info');
+        // Implementation would depend on your trading engine
+    }
+
+    refreshData() {
+        this.updatePreviewData();
+        this.showNotification('ডাটা রিফ্রেশ করা হয়েছে', 'success');
+    }
+
+    toggleAutoScroll() {
+        this.isAutoScroll = !this.isAutoScroll;
+        const button = document.getElementById('autoScroll');
+        
+        if (button) {
+            if (this.isAutoScroll) {
+                button.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Auto Scroll';
+                button.className = 'text-green-400 text-sm font-semibold';
+            } else {
+                button.innerHTML = '<i class="fas fa-times-circle mr-1"></i>Auto Scroll';
+                button.className = 'text-red-400 text-sm font-semibold';
+            }
+        }
+    }
+
+    exportLogs() {
+        const logText = this.logEntries.map(entry => 
+            `${new Date(entry.timestamp).toLocaleString()} - ${entry.symbol} ${entry.action} - P/L: $${entry.profit_loss || 0}`
+        ).join('\n');
+        
+        const blob = new Blob([logText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `trading-logs-${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        this.showNotification('লগস এক্সপোর্ট করা হয়েছে', 'success');
+    }
+
+    clearLogs() {
+        if (confirm('আপনি কি সব ট্রেডিং লগ মুছে ফেলতে চান?')) {
+            this.logEntries = [];
+            const logContainer = document.getElementById('tradingLog');
+            if (logContainer) {
+                logContainer.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-robot text-4xl mb-3"></i>
+                        <p class="text-lg">AI ট্রেডিং সিস্টেম প্রস্তুত</p>
+                        <p class="text-sm mt-1">ট্রেডিং শুরু করলে রিয়েল-টাইম লগ দেখানো হবে</p>
+                    </div>
+                `;
+            }
+            this.showNotification('লগস ক্লিয়ার করা হয়েছে', 'success');
+        }
+    }
+
+    loadMarketOverview() {
+        // Initial market data load
+        const sampleData = {
+            market_overview: [
+                { symbol: 'EUR/USD', price: 1.0950, change: 0.12 },
+                { symbol: 'GBP/USD', price: 1.2750, change: -0.08 },
+                { symbol: 'XAU/USD', price: 1980.50, change: 0.25 },
+                { symbol: 'BTC/USD', price: 42000.00, change: 1.50 }
+            ]
+        };
+        
+        this.updateMarketOverview(sampleData);
+    }
+
+    showNotification(message, type) {
+        if (window.exnessAI && window.exnessAI.showNotification) {
+            window.exnessAI.showNotification(message, type);
+        } else {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+        }
+    }
+}
+
+// Initialize live preview when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    window.livePreview = new LivePreview();
+});
+</script>
+{% endblock %}
