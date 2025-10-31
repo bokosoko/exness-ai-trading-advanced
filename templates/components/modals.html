@@ -1,1 +1,245 @@
+<!-- Trading Confirmation Modal -->
+<div id="tradingModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md mx-4 border border-gray-700">
+        <h3 class="text-xl font-bold text-white mb-4" id="modalTitle">ট্রেডিং কনফার্মেশন</h3>
+        <p class="text-gray-300 mb-6" id="modalMessage">আপনি কি ট্রেডিং শুরু করতে চান?</p>
+        
+        <div class="flex space-x-3">
+            <button id="modalConfirm" class="flex-1 bg-primary-500 text-white py-3 rounded-lg font-semibold hover:bg-primary-600 transition duration-200">
+                হ্যাঁ
+            </button>
+            <button id="modalCancel" class="flex-1 bg-gray-600 text-white py-3 rounded-lg font-semibold hover:bg-gray-700 transition duration-200">
+                বাতিল
+            </button>
+        </div>
+    </div>
+</div>
 
+<!-- Settings Modal -->
+<div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl mx-4 border border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-white">সেটিংস</h3>
+            <button id="closeSettings" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="space-y-6">
+            <!-- Trading Settings -->
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">ট্রেডিং সেটিংস</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">ডিফল্ট লট সাইজ</label>
+                        <input type="number" class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white" value="0.01" step="0.01" min="0.01" max="1.0">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">স্ট্র্যাটেজি</label>
+                        <select class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-white">
+                            <option value="conservative">কনজারভেটিভ</option>
+                            <option value="moderate" selected>মডারেট</option>
+                            <option value="aggressive">অ্যাগ্রেসিভ</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Risk Management -->
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">রিস্ক ম্যানেজমেন্ট</h4>
+                <div class="space-y-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">সর্বোচ্চ রিস্ক পার ট্রেড (%)</label>
+                        <input type="range" min="0.5" max="5" step="0.5" value="2" class="w-full">
+                        <div class="text-right text-sm text-gray-400">2%</div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">দৈনিক লস লিমিট (%)</label>
+                        <input type="range" min="1" max="10" step="1" value="5" class="w-full">
+                        <div class="text-right text-sm text-gray-400">5%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Notifications -->
+            <div>
+                <h4 class="text-lg font-semibold text-white mb-4">নোটিফিকেশন</h4>
+                <div class="space-y-2">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded bg-gray-700 border-gray-600 text-primary-500 focus:ring-primary-400" checked>
+                        <span class="ml-2 text-gray-300">ট্রেড এক্সিকিউশন নোটিফিকেশন</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded bg-gray-700 border-gray-600 text-primary-500 focus:ring-primary-400" checked>
+                        <span class="ml-2 text-gray-300">রিস্ক অ্যালার্ট</span>
+                    </label>
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded bg-gray-700 border-gray-600 text-primary-500 focus:ring-primary-400">
+                        <span class="ml-2 text-gray-300">ইমেইল নোটিফিকেশন</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end space-x-3 mt-6">
+            <button class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200">
+                রিসেট
+            </button>
+            <button class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition duration-200">
+                সেভ করুন
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Summary Modal -->
+<div id="performanceModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-2xl mx-4 border border-gray-700">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="text-xl font-bold text-white">পারফরম্যান্স সামারি</h3>
+            <button id="closePerformance" class="text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <div class="text-2xl font-bold text-green-400" id="summaryProfit">+$24.50</div>
+                <div class="text-sm text-gray-400">নেট প্রফিট</div>
+            </div>
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <div class="text-2xl font-bold text-white" id="summaryTrades">12</div>
+                <div class="text-sm text-gray-400">মোট ট্রেড</div>
+            </div>
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <div class="text-2xl font-bold text-green-400" id="summaryWinRate">83%</div>
+                <div class="text-sm text-gray-400">সাফল্যের হার</div>
+            </div>
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <div class="text-2xl font-bold text-white" id="summaryDuration">45m</div>
+                <div class="text-sm text-gray-400">সেশন সময়</div>
+            </div>
+        </div>
+        
+        <div class="bg-gray-700 rounded-lg p-4 mb-4">
+            <h4 class="font-semibold text-white mb-3">ট্রেডিং এক্টিভিটি</h4>
+            <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">সফল ট্রেড</span>
+                    <span class="text-green-400">10</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">ব্যর্থ ট্রেড</span>
+                    <span class="text-red-400">2</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-300">গড় প্রফিট পার ট্রেড</span>
+                    <span class="text-green-400">$2.04</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="flex justify-end">
+            <button class="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition duration-200">
+                বিস্তারিত রিপোর্ট
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Modal management
+class ModalManager {
+    constructor() {
+        this.setupModalEvents();
+    }
+    
+    setupModalEvents() {
+        // Trading modal
+        const tradingModal = document.getElementById('tradingModal');
+        const modalConfirm = document.getElementById('modalConfirm');
+        const modalCancel = document.getElementById('modalCancel');
+        
+        if (modalCancel) {
+            modalCancel.addEventListener('click', () => {
+                this.hideModal('tradingModal');
+            });
+        }
+        
+        // Settings modal
+        const settingsModal = document.getElementById('settingsModal');
+        const closeSettings = document.getElementById('closeSettings');
+        const quickSettings = document.getElementById('quickSettings');
+        
+        if (closeSettings) {
+            closeSettings.addEventListener('click', () => {
+                this.hideModal('settingsModal');
+            });
+        }
+        
+        if (quickSettings) {
+            quickSettings.addEventListener('click', () => {
+                this.showModal('settingsModal');
+            });
+        }
+        
+        // Performance modal
+        const performanceModal = document.getElementById('performanceModal');
+        const closePerformance = document.getElementById('closePerformance');
+        
+        if (closePerformance) {
+            closePerformance.addEventListener('click', () => {
+                this.hideModal('performanceModal');
+            });
+        }
+        
+        // Close modals when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('fixed')) {
+                e.target.classList.add('hidden');
+            }
+        });
+    }
+    
+    showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+    }
+    
+    hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    }
+    
+    showTradingConfirmation(initialAmount, targetAmount) {
+        const modal = document.getElementById('tradingModal');
+        const title = document.getElementById('modalTitle');
+        const message = document.getElementById('modalMessage');
+        const confirmBtn = document.getElementById('modalConfirm');
+        
+        if (modal && title && message && confirmBtn) {
+            title.textContent = 'ট্রেডিং কনফার্মেশন';
+            message.textContent = `আপনি কি $${initialAmount} থেকে $${targetAmount} টার্গেট করে ট্রেডিং শুরু করতে চান?`;
+            
+            confirmBtn.onclick = () => {
+                if (window.tradingEngine) {
+                    window.tradingEngine.startTradingSession();
+                }
+                this.hideModal('tradingModal');
+            };
+            
+            this.showModal('tradingModal');
+        }
+    }
+}
+
+// Initialize modal manager
+document.addEventListener('DOMContentLoaded', () => {
+    window.modalManager = new ModalManager();
+});
+  </script>
